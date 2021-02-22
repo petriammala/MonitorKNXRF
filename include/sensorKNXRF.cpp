@@ -3,6 +3,7 @@
 #include <vector>
 #include <syslog.h>
 #include "sensorKNXRF.h"
+#include "influxDbInterface.h"
 #include "cc1101.h"
 #include "Crc16.h"
 
@@ -167,65 +168,11 @@ uint16_t transformTemperature(uint16_t data) {
 
 
 
-// Print first element in sensor data, and reference to the next element
-void sendSensorData(SensorKNXRF *&currentSensor, OpenhabItem *itemList) {
-	if (currentSensor) {
+void sendSensorData(SensorKNXRF *&currentSensor, char *influxHost) {
+	while (currentSensor) {
 		SensorKNXRF *tempSensor;
-		uint8_t validData;
-		char charBuffer[16] = {0};
-		std::string itemPrefix,itemName, itemState, itemNo;
-		std::vector <std::string> itemType;
-		
-		itemPrefix.assign("roomThermostat");
-		
-		itemType.push_back("Battery");
-		itemType.push_back("ActTemp");
-		itemType.push_back("SetTemp");
-		itemType.push_back("RSSI");
-		tempSensor = currentSensor;
-		
-		sprintf(charBuffer,"%04X%08X", currentSensor->serialNoHighWord, currentSensor->serialNoLowWord);
-		itemNo.assign(charBuffer);
-		
-		while (itemList) {
-			for (uint16_t i = 0; i < itemType.size(); ++i) {
-				if (itemList->name.compare(itemPrefix + itemType[i] + itemNo) == 0) {
-					switch(i) {
-						case 0 : 
-							sprintf(charBuffer,"%d", currentSensor->batteryOK);
-							validData = 1;
-							break;    
-						case 1 : 
-							if (currentSensor->sensorData[1] != 0xFFFF) {
-								sprintf(charBuffer,"%d", transformTemperature(currentSensor->sensorData[1]));
-								validData = 1;
-							} else {
-								validData = 0;
-							}
-							break;   
-						case 2 : 
-							if (currentSensor->sensorData[2] != 0xFFFF) {
-								sprintf(charBuffer,"%d", transformTemperature(currentSensor->sensorData[2]));
-								validData = 1;
-							} else {
-								validData = 0;
-							}
-							break;    
-						case 3 : 
-							sprintf(charBuffer,"%d", currentSensor->rssi);
-							validData = 1;
-							break;
-						default :
-							validData = 0;
-							break;
-					}
-					if (validData) {
-						itemState.assign(charBuffer);
-						putOpenhabItem(itemPrefix + itemType[i] + itemNo, itemState);
-					}
-				}
-			}
-			itemList = itemList->next;
+		if (currentSensor->sensorData[1] != 0xFFFF && currentSensor->sensorData[2] != 0xFFFF) {
+			sendToInfluxDb(currentSensor, influxHost);
 		}
 		// Delete this sensor and point to next
 		tempSensor = currentSensor;

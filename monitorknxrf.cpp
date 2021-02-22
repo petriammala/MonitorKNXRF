@@ -10,7 +10,6 @@
 #include <systemd/sd-daemon.h> // needed for sd_notify, if compiler error try to run >> sudo apt-get install libsystemd-dev
 #include "cc1101.h"
 #include "sensorKNXRF.h"
-#include "openhabRESTInterface.h"
 
 #define GDO0idx 0
 #define GDO2idx 1
@@ -64,13 +63,17 @@ void cc1101InterruptGDO2(void) {
 int main (int argc, char* argv[])
 {
 	char s[256];
-	OpenhabItem *itemList = NULL;	
+	char *influxHost = NULL;
 	uint8_t addrCC1101 = 0;
 	int internalWD = 0;
 	int exitCode = EXIT_SUCCESS;
-	
-	if (argc > 1) {
-		cc1101_debug = atoi(argv[1]);
+	int d = 15000;
+
+        if (argc > 1) {
+                influxHost = argv[1];
+	}
+        if (argc > 2) {
+                cc1101_debug = atoi(argv[2]);
 	} else {
 		cc1101_debug = 0;
 	}
@@ -93,27 +96,24 @@ int main (int argc, char* argv[])
 
 
 	cc1101.show_register_settings();
-	
 
 	try {
-		while (!stopprogram) { 
-			delay(15000);
+		while (!stopprogram) {
+			delay(d);
 			sd_notify(0,"WATCHDOG=1");
-			syslog(LOG_INFO, "MonitorKNXRF is requesting data from Openhab.");
-			parseOpenhabItems(getOpenhabItems("RoomThermostat"), itemList);
 			internalWD++;
 			while (sensorBuffer) {
 				sprintf(s, "MonitorKNXRF got data from sensor %04X%08X reading %d and %d.", 
 						sensorBuffer->serialNoHighWord, sensorBuffer->serialNoLowWord, transformTemperature(sensorBuffer->sensorData[1]), transformTemperature(sensorBuffer->sensorData[2]));
 				syslog(LOG_INFO, s);
 				piLock(GDO2idx);
-				sendSensorData(sensorBuffer, itemList);
+				sendSensorData(sensorBuffer, influxHost);
 				piUnlock(GDO2idx);
 				delay(1);
 				internalWD = 0;
 			}
-			if (internalWD > 8) {
-				stopprogram = 1; 
+			if (internalWD > (60000 / d * 15)) { // terminate after waiting total 15 minutes
+				stopprogram = 1;
 				syslog(LOG_ERR, "MonitorKNXRF stopping due to no data received from CC1101");
 				exitCode = EXIT_FAILURE;
 			}
