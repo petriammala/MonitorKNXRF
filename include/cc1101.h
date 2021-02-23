@@ -5,7 +5,7 @@
 
 
 /*----------------------------------[standard]--------------------------------*/
-#define CC1101_TIMEOUT 		2000		// Time to wait for a response from CC1101
+#define CC1101_TIMEOUT    2000    // Time to wait for a response from CC1101
 #define CC1101_BUFFER_LEN        60
 #define CC1101_DATA_LEN          CC1101_BUFFER_LEN - 4
 
@@ -132,80 +132,114 @@
 #define RCCTRL0_STATUS 0xFD   //Last RC Oscillator Calibration Result
 //--------------------------[END status register]-------------------------------
 
-class CC1101
-{
-    private:
+class CC1101 {
+private:
 
-        void spi_begin(void);
-        void spi_end(void);
-        uint8_t spi_putc(uint8_t data);
+  void spi_begin(void);
 
-    public:
-        uint8_t debug_level;
+  void spi_end(void);
 
-        uint8_t set_debug_level(uint8_t set_debug_level);
-        uint8_t get_debug_level(void);
+  uint8_t spi_putc(uint8_t data);
 
-        uint8_t begin(uint8_t addrCC1101);
-        void end(void);
+public:
+  uint8_t debug_level;
 
-        void spi_write_strobe(uint8_t spi_instr);
-        void spi_write_register(uint8_t spi_instr, uint8_t value);
-        void spi_write_burst(uint8_t spi_instr, uint8_t *pArr, uint8_t length);
-        void spi_read_burst(uint8_t spi_instr, uint8_t *pArr, uint8_t length);
-        uint8_t spi_read_register(uint8_t spi_instr);
-        uint8_t spi_read_status(uint8_t spi_instr);
+  uint8_t set_debug_level(uint8_t set_debug_level);
 
-        void reset(void);
-        void wakeup(void);
-        void powerdown(void);
+  uint8_t get_debug_level(void);
 
-        void wor_enable(void);
-        void wor_disable(void);
-        void wor_reset(void);
+  uint8_t begin(uint8_t addrCC1101);
 
-        uint8_t sidle(void);
-        uint8_t transmit(void);
-        uint8_t receive(void);
+  void end(void);
 
-        void show_register_settings(void);
-        void show_main_settings(void);
+  void spi_write_strobe(uint8_t spi_instr);
 
-        uint8_t packet_available();
-        uint8_t wait_for_packet(uint8_t milliseconds);
+  void spi_write_register(uint8_t spi_instr, uint8_t value);
 
-        uint8_t get_payload(uint8_t rxbuffer[], uint8_t &pktlen_rx,uint8_t &my_addr,
-                                      uint8_t &sender, int8_t &rssi_dbm, uint8_t &lqi);
+  void spi_write_burst(uint8_t spi_instr, uint8_t *pArr, uint8_t length);
 
-        uint8_t tx_payload_burst(uint8_t my_addr, uint8_t rx_addr, uint8_t *txbuffer, uint8_t length);
-        uint8_t rx_payload_burst(uint8_t rxbuffer[], uint8_t &pktlen);
+  void spi_read_burst(uint8_t spi_instr, uint8_t *pArr, uint8_t length);
 
-        void rx_fifo_erase(uint8_t *rxbuffer);
-        void tx_fifo_erase(uint8_t *txbuffer);
+  uint8_t spi_read_register(uint8_t spi_instr);
 
-        uint8_t sent_packet(uint8_t my_addr, uint8_t rx_addr, uint8_t *txbuffer, uint8_t pktlen, uint8_t tx_retries);
-        void sent_acknolage(uint8_t my_addr, uint8_t tx_addr);
+  uint8_t spi_read_status(uint8_t spi_instr);
 
-        uint8_t check_acknolage(uint8_t *rxbuffer, uint8_t pktlen, uint8_t sender, uint8_t my_addr);
+  void reset(void);
 
-        int8_t rssi_convert(uint8_t Rssi);
-        uint8_t check_crc(uint8_t lqi);
-        uint8_t lqi_convert(uint8_t lqi);
-        uint8_t get_temp(uint8_t *ptemp_Arr);
+  void wakeup(void);
 
-        void set_myaddr(uint8_t addr);
-        void set_channel(uint8_t channel);
-        void set_ISM(uint8_t ism_freq);
-        void set_mode(uint8_t mode);
-        void set_output_power_level(int8_t dbm);
-        void set_patable(uint8_t *patable_arr);
-        void set_fec(uint8_t cfg);
-        void set_data_whitening(uint8_t cfg);
-        void set_modulation_type(uint8_t cfg);
-        void set_preamble_len(uint8_t cfg);
-        void set_manchaster_encoding(uint8_t cfg);
-        void set_sync_mode(uint8_t cfg);
-        void set_datarate(uint8_t mdmcfg4, uint8_t mdmcfg3, uint8_t deviant);
+  void powerdown(void);
+
+  void wor_enable(void);
+
+  void wor_disable(void);
+
+  void wor_reset(void);
+
+  uint8_t sidle(void);
+
+  uint8_t transmit(void);
+
+  uint8_t receive(void);
+
+  void show_register_settings(void);
+
+  void show_main_settings(void);
+
+  uint8_t packet_available();
+
+  uint8_t wait_for_packet(uint8_t milliseconds);
+
+  uint8_t get_payload(uint8_t rxbuffer[], uint8_t &pktlen_rx, uint8_t &my_addr,
+                      uint8_t &sender, int8_t &rssi_dbm, uint8_t &lqi);
+
+  uint8_t tx_payload_burst(uint8_t my_addr, uint8_t rx_addr, uint8_t *txbuffer, uint8_t length);
+
+  uint8_t rx_payload_burst(uint8_t rxbuffer[], uint8_t &pktlen);
+
+  void rx_fifo_erase(uint8_t *rxbuffer);
+
+  void tx_fifo_erase(uint8_t *txbuffer);
+
+  uint8_t sent_packet(uint8_t my_addr, uint8_t rx_addr, uint8_t *txbuffer, uint8_t pktlen, uint8_t tx_retries);
+
+  void sent_acknolage(uint8_t my_addr, uint8_t tx_addr);
+
+  uint8_t check_acknolage(uint8_t *rxbuffer, uint8_t pktlen, uint8_t sender, uint8_t my_addr);
+
+  int8_t rssi_convert(uint8_t Rssi);
+
+  uint8_t check_crc(uint8_t lqi);
+
+  uint8_t lqi_convert(uint8_t lqi);
+
+  uint8_t get_temp(uint8_t *ptemp_Arr);
+
+  void set_myaddr(uint8_t addr);
+
+  void set_channel(uint8_t channel);
+
+  void set_ISM(uint8_t ism_freq);
+
+  void set_mode(uint8_t mode);
+
+  void set_output_power_level(int8_t dbm);
+
+  void set_patable(uint8_t *patable_arr);
+
+  void set_fec(uint8_t cfg);
+
+  void set_data_whitening(uint8_t cfg);
+
+  void set_modulation_type(uint8_t cfg);
+
+  void set_preamble_len(uint8_t cfg);
+
+  void set_manchaster_encoding(uint8_t cfg);
+
+  void set_sync_mode(uint8_t cfg);
+
+  void set_datarate(uint8_t mdmcfg4, uint8_t mdmcfg3, uint8_t deviant);
 };
 
 

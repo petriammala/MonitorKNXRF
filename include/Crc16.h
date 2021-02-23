@@ -30,100 +30,101 @@
 #define LIBRARY_VERSION_CRC16_H   "0.1.1"
 
 class Crc16 {
-   private:
-        //Crc parameters
-        uint16_t _msbMask;
-        uint16_t _mask;
-        uint16_t _xorIn;
-        uint16_t _xorOut;
-        uint16_t _polynomial;
-        uint8_t _reflectIn;
-        uint8_t _reflectOut;
-        //Crc value
-		uint16_t _crc;
-		uint8_t reflect(uint8_t data, uint8_t bits = 32);
+private:
+  //Crc parameters
+  uint16_t _msbMask;
+  uint16_t _mask;
+  uint16_t _xorIn;
+  uint16_t _xorOut;
+  uint16_t _polynomial;
+  uint8_t _reflectIn;
+  uint8_t _reflectOut;
+  //Crc value
+  uint16_t _crc;
 
-   public:
-        inline Crc16()
-        {
-            //Default to XModem parameters
-            _reflectIn = false;
-            _reflectOut = false;
-            _polynomial = 0x1021;
-            _xorIn = 0x0000;
-            _xorOut = 0x0000;
-            _msbMask = 0x8000;
-            _mask = 0xFFFF;
-            _crc = _xorIn;
-        }
-        inline Crc16(uint8_t reflectIn, uint8_t reflectOut, uint16_t polynomial, uint16_t xorIn, uint16_t xorOut, uint16_t msbMask, uint16_t mask)
-        {
-            _reflectIn = reflectIn;
-            _reflectOut = reflectOut;
-            _polynomial = polynomial;
-            _xorIn = xorIn;
-            _xorOut = xorOut;
-            _msbMask = msbMask;
-            _mask = mask;
-            _crc = _xorIn;
-        }
-        inline void clearCrc();
-        inline void updateCrc(uint8_t data);
-        inline uint16_t getCrc();
-        inline uint32_t fastCrc(uint8_t data[], uint8_t start, uint16_t length, uint8_t reflectIn, uint8_t reflectOut, uint16_t polynomial, uint16_t xorIn, uint16_t xorOut, uint16_t msbMask, uint16_t mask);
-        inline uint32_t XModemCrc(uint8_t data[], uint8_t start, uint16_t length)
-		{
-            //  XModem parameters: poly=0x1021 init=0x0000 refin=false refout=false xorout=0x0000
-            return fastCrc(data, start, length, false, false, 0x1021, 0x0000, 0x0000, 0x8000, 0xffff);
-		}
+  uint8_t reflect(uint8_t data, uint8_t bits = 32);
+
+public:
+  inline Crc16() {
+    //Default to XModem parameters
+    _reflectIn = false;
+    _reflectOut = false;
+    _polynomial = 0x1021;
+    _xorIn = 0x0000;
+    _xorOut = 0x0000;
+    _msbMask = 0x8000;
+    _mask = 0xFFFF;
+    _crc = _xorIn;
+  }
+
+  inline Crc16(uint8_t reflectIn, uint8_t reflectOut, uint16_t polynomial, uint16_t xorIn, uint16_t xorOut, uint16_t msbMask, uint16_t mask) {
+    _reflectIn = reflectIn;
+    _reflectOut = reflectOut;
+    _polynomial = polynomial;
+    _xorIn = xorIn;
+    _xorOut = xorOut;
+    _msbMask = msbMask;
+    _mask = mask;
+    _crc = _xorIn;
+  }
+
+  inline void clearCrc();
+
+  inline void updateCrc(uint8_t data);
+
+  inline uint16_t getCrc();
+
+  inline uint32_t
+  fastCrc(uint8_t data[], uint8_t start, uint16_t length, uint8_t reflectIn, uint8_t reflectOut, uint16_t polynomial, uint16_t xorIn, uint16_t xorOut,
+          uint16_t msbMask, uint16_t mask);
+
+  inline uint32_t XModemCrc(uint8_t data[], uint8_t start, uint16_t length) {
+    //  XModem parameters: poly=0x1021 init=0x0000 refin=false refout=false xorout=0x0000
+    return fastCrc(data, start, length, false, false, 0x1021, 0x0000, 0x0000, 0x8000, 0xffff);
+  }
 };
 
 //---------------------------------------------------
 // Initialize crc calculation
 //---------------------------------------------------
-void Crc16::clearCrc()
-{
-	_crc = _xorIn;
+void Crc16::clearCrc() {
+  _crc = _xorIn;
 }
+
 //---------------------------------------------------
 // Update crc with new data
 //---------------------------------------------------
-void Crc16::updateCrc(uint8_t data)
-{
-	if (_reflectIn != 0)
-		data = (uint8_t) reflect(data, 8);
+void Crc16::updateCrc(uint8_t data) {
+  if (_reflectIn != 0)
+    data = (uint8_t) reflect(data, 8);
 
-	int j = 0x80;
+  int j = 0x80;
 
-	while (j > 0)
-	{
-		uint16_t bit = (uint16_t)(_crc & _msbMask);
-		
-		_crc <<= 1;
+  while (j > 0) {
+    uint16_t bit = (uint16_t)(_crc & _msbMask);
 
-		if ((data & j) != 0)
-		{
-			bit = (uint16_t)(bit ^ _msbMask);
-		}
+    _crc <<= 1;
 
-		if (bit != 0)
-		{
-			_crc ^= _polynomial;
-		}
+    if ((data & j) != 0) {
+      bit = (uint16_t)(bit ^ _msbMask);
+    }
 
-		j >>= 1;
-	}
+    if (bit != 0) {
+      _crc ^= _polynomial;
+    }
+
+    j >>= 1;
+  }
 }
 
 //---------------------------------------------------
 // Get final crc value
 //---------------------------------------------------
-uint16_t Crc16::getCrc()
-{
+uint16_t Crc16::getCrc() {
   if (_reflectOut != 0)
-		_crc = (uint32_t)((reflect(_crc) ^ _xorOut) & _mask);
+    _crc = (uint32_t)((reflect(_crc) ^ _xorOut) & _mask);
 
-	return _crc;
+  return _crc;
 }
 
 //---------------------------------------------------
@@ -134,68 +135,63 @@ uint16_t Crc16::getCrc()
 // XModem: 		width=16 poly=0x1021 init=0x0000 refin=false refout=false xorout=0x0000 check=0x31c3
 // CCITT-False:	width=16 poly=0x1021 init=0xffff refin=false refout=false xorout=0x0000 check=0x29b1
 //---------------------------------------------------
-uint32_t Crc16::fastCrc(uint8_t data[], uint8_t start, uint16_t length, uint8_t reflectIn, uint8_t reflectOut, uint16_t polynomial, uint16_t xorIn, uint16_t xorOut, uint16_t msbMask, uint16_t mask)
-{
-	uint32_t crc = xorIn;
+uint32_t
+Crc16::fastCrc(uint8_t data[], uint8_t start, uint16_t length, uint8_t reflectIn, uint8_t reflectOut, uint16_t polynomial, uint16_t xorIn, uint16_t xorOut,
+               uint16_t msbMask, uint16_t mask) {
+  uint32_t crc = xorIn;
 
-	int j;
-	uint8_t c;
-	uint32_t bit;
+  int j;
+  uint8_t c;
+  uint32_t bit;
 
-	if (length == 0) return crc;
+  if (length == 0) return crc;
 
-	for (int i = start; i < (start + length); i++)
-	{
-		c = data[i];
+  for (int i = start; i < (start + length); i++) {
+    c = data[i];
 
-		if (reflectIn != 0)
-			c = (uint8_t) reflect(c, 8);
+    if (reflectIn != 0)
+      c = (uint8_t) reflect(c, 8);
 
-		j = 0x80;
+    j = 0x80;
 
-		while (j > 0)
-		{
-			bit = (uint32_t)(crc & msbMask);
-			crc <<= 1;
+    while (j > 0) {
+      bit = (uint32_t)(crc & msbMask);
+      crc <<= 1;
 
-			if ((c & j) != 0)
-			{
-				bit = (uint32_t)(bit ^ msbMask);
-			}
+      if ((c & j) != 0) {
+        bit = (uint32_t)(bit ^ msbMask);
+      }
 
-			if (bit != 0)
-			{
-				crc ^= polynomial;
-			}
+      if (bit != 0) {
+        crc ^= polynomial;
+      }
 
-			j >>= 1;
-		}
-	}
+      j >>= 1;
+    }
+  }
 
-	if (reflectOut != 0)
-		crc = (uint32_t)((reflect(crc) ^ xorOut) & mask);
+  if (reflectOut != 0)
+    crc = (uint32_t)((reflect(crc) ^ xorOut) & mask);
 
-	return crc;
+  return crc;
 }
 
 //-------------------------------------------------------
 // Reflects bit in a uint8_t
 //-------------------------------------------------------
-uint8_t Crc16::reflect(uint8_t data, uint8_t bits)
-{
-	unsigned long reflection = 0x00000000;
-	// Reflect the data about the center bit.
-	for (uint8_t bit = 0; bit < bits; bit++)
-	{
-		// If the LSB bit is set, set the reflection of it.
-		if ((data & 0x01) != 0)
-		{
-			reflection |= (unsigned long)(1 << ((bits - 1) - bit));
-		}
+uint8_t Crc16::reflect(uint8_t data, uint8_t bits) {
+  unsigned long reflection = 0x00000000;
+  // Reflect the data about the center bit.
+  for (uint8_t bit = 0; bit < bits; bit++) {
+    // If the LSB bit is set, set the reflection of it.
+    if ((data & 0x01) != 0) {
+      reflection |= (unsigned long) (1 << ((bits - 1) - bit));
+    }
 
-		data = (uint8_t)(data >> 1);
-	}
+    data = (uint8_t)(data >> 1);
+  }
 
-	return reflection;
+  return reflection;
 }
+
 #endif
