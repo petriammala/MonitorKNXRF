@@ -13,13 +13,24 @@ LIBS = -lcurl -lwiringPi -lsystemd
 
 # Link the target with all objects and libraries
 $(TARGET) : $(OBJS)
-	$(CC)  -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $(TARGET) $(OBJS) $(LIBS)
 
-$(OBJS) : monitorknxrf.cpp
-	$(CC) $(CFLAGS) $< include/*.cpp
+monitorknxrf.o: monitorknxrf.cpp include/cc1101.h include/sensorKNXRF.h
+	$(CC) $(CFLAGS) monitorknxrf.cpp
+
+cc1101.o: include/cc1101.cpp include/cc1101.h
+	$(CC) $(CFLAGS) include/cc1101.cpp
+
+influxDbInterface.o: include/influxDbInterface.cpp include/influxDbInterface.h include/sensorKNXRF.h
+	$(CC) $(CFLAGS) include/influxDbInterface.cpp
+
+sensorKNXRF.o: include/sensorKNXRF.cpp include/sensorKNXRF.h include/influxDbInterface.h include/cc1101.h include/Crc16.h
+	$(CC) $(CFLAGS) include/sensorKNXRF.cpp
 
 clean:
 	rm -f *.o
+	rm -f monknxrf
+
 install:
 	systemctl stop monitorknxrf
 	cp monknxrf /usr/bin
