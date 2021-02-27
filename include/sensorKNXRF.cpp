@@ -170,9 +170,7 @@ uint16_t transformTemperature(uint16_t data) {
 void sendSensorData(SensorKNXRF *&currentSensor, char *influxHost) {
   while (currentSensor) {
     SensorKNXRF *tempSensor;
-    if (currentSensor->sensorData[1] != 0xFFFF && currentSensor->sensorData[2] != 0xFFFF) {
-      sendToInfluxDb(currentSensor, influxHost);
-    }
+    sendToInfluxDb(currentSensor, influxHost);
     // Delete this sensor and point to next
     tempSensor = currentSensor;
     currentSensor = currentSensor->next;
