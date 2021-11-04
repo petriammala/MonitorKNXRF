@@ -61,14 +61,14 @@ void cc1101InterruptGDO2(void) {
 
 int main(int argc, char *argv[]) {
   char s[256];
-  char *influxHost = NULL;
+  char *influxHosts = NULL;
   uint8_t addrCC1101 = 0;
   int internalWD = 0;
   int exitCode = EXIT_SUCCESS;
   int d = 15000;
 
   if (argc > 1) {
-    influxHost = argv[1];
+    influxHosts = argv[1];
   }
   if (argc > 2) {
     cc1101_debug = atoi(argv[2]);
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
                 transformTemperature(sensorBuffer->sensorData[2]));
         syslog(LOG_INFO, s);
         piLock(GDO2idx);
-        sendSensorData(sensorBuffer, influxHost);
+        sendSensorData(sensorBuffer, influxHosts);
         piUnlock(GDO2idx);
         delay(1);
         internalWD = 0;

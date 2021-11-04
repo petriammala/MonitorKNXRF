@@ -1,10 +1,11 @@
 #include <syslog.h>
-#include <string>
+#include <string.h>
 #include <curl/curl.h>
 #include "influxDbInterface.h"
 #include "sensorKNXRF.h"
 
 const std::string DEFAULT_INFLUX_HOST = "localhost:8086";
+const std::string INFLUX_DB = "knxrf";
 const std::string INXFLUX_MEASUREMENTS = "knxrf_measurements";
 const char *INFLUX_USERNAME = std::getenv("INFLUX_USERNAME");
 const char *INFLUX_PASSWORD = std::getenv("INFLUX_PASSWORD");
@@ -22,7 +23,7 @@ void sendToInfluxDb(SensorKNXRF *currentSensor, char *influxHost) {
     influxData.targetTemperature = transformTemperature(currentSensor->sensorData[2]);
     influxData.rssi = currentSensor->rssi;
     influxData.batteryOk = currentSensor->batteryOK;
-    sprintf(url, "http://%s/write?db=knxrf", influxHost != NULL ? influxHost : DEFAULT_INFLUX_HOST.c_str());
+    sprintf(url, "http://%s/write?db=%s", influxHost != NULL ? influxHost : DEFAULT_INFLUX_HOST.c_str(), INFLUX_DB.c_str());
     std::string data = influxData.asLineProtocol(INXFLUX_MEASUREMENTS);
     syslog(LOG_INFO, "Sending data '%s' to %s, user %s", data.c_str(), url, INFLUX_USERNAME);
 
@@ -41,4 +42,14 @@ void sendToInfluxDb(SensorKNXRF *currentSensor, char *influxHost) {
     curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
+}
+
+void sendToInfluxDbs(SensorKNXRF *currentSensor, char *influxHosts) {
+  char clonedHosts[strlen(influxHosts)];
+  strcpy(clonedHosts, influxHosts);
+  char *influxHost = strtok(clonedHosts, ",");
+  do {
+    sendToInfluxDb(currentSensor, influxHost);
+    influxHost = strtok(NULL, ",");
+  } while (influxHost != NULL);
 }

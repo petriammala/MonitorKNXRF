@@ -24,6 +24,6 @@ public:
   };
 };
 
-void sendToInfluxDb(SensorKNXRF *currentSensor, char *influxHost);
+void sendToInfluxDbs(SensorKNXRF *currentSensor, char *influxHost);
 
 #endif
