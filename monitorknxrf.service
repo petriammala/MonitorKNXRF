@@ -1,0 +1,14 @@
+[Unit]
+Description=Service to collect KNX RF data and send to Influx database
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/monknxrf 127.0.0.1:8086
+WatchdogSec=30
+Restart=always
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
