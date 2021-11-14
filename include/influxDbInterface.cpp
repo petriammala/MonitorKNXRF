@@ -6,6 +6,8 @@
 
 const std::string DEFAULT_INFLUX_HOST = "localhost:8086";
 const std::string INXFLUX_MEASUREMENTS = "knxrf_measurements";
+const char *INFLUX_USERNAME = std::getenv("INFLUX_USERNAME");
+const char *INFLUX_PASSWORD = std::getenv("INFLUX_PASSWORD");
 
 void sendToInfluxDb(SensorKNXRF *currentSensor, char *influxHost) {
   char url[256];
@@ -22,12 +24,16 @@ void sendToInfluxDb(SensorKNXRF *currentSensor, char *influxHost) {
     influxData.batteryOk = currentSensor->batteryOK;
     sprintf(url, "http://%s/write?db=knxrf", influxHost != NULL ? influxHost : DEFAULT_INFLUX_HOST.c_str());
     std::string data = influxData.asLineProtocol(INXFLUX_MEASUREMENTS);
-    syslog(LOG_INFO, "Sending data '%s' to %s", data.c_str(), url);
+    syslog(LOG_INFO, "Sending data '%s' to %s, user %s", data.c_str(), url, INFLUX_USERNAME);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     /* size of the POST data */
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
+
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    curl_easy_setopt(curl, CURLOPT_USERNAME, INFLUX_USERNAME);
+    curl_easy_setopt(curl, CURLOPT_PASSWORD, INFLUX_PASSWORD);
 
     /* pass in a pointer to the data - libcurl will not copy */
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());

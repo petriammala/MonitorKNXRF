@@ -5,6 +5,8 @@ After=network-online.target
 
 [Service]
 Type=simple
+Environment="INFLUX_USERNAME=username"
+Environment="INFLUX_PASSWORD=password"
 ExecStart=/usr/bin/monknxrf 127.0.0.1:8086
 WatchdogSec=30
 Restart=always
