@@ -4,7 +4,7 @@
 #include "influxDbInterface.h"
 #include "sensorKNXRF.h"
 
-const std::string DEFAULT_INFLUX_HOST = "localhost:8086";
+const std::string DEFAULT_INFLUX_HOST = "http://localhost:8086";
 const std::string INFLUX_DB = "knxrf";
 const std::string INXFLUX_MEASUREMENTS = "knxrf_measurements";
 const char *INFLUX_USERNAME = std::getenv("INFLUX_USERNAME");
@@ -23,7 +23,7 @@ void sendToInfluxDb(SensorKNXRF *currentSensor, char *influxHost) {
     influxData.targetTemperature = transformTemperature(currentSensor->sensorData[2]);
     influxData.rssi = currentSensor->rssi;
     influxData.batteryOk = currentSensor->batteryOK;
-    sprintf(url, "http://%s/write?db=%s", influxHost != NULL ? influxHost : DEFAULT_INFLUX_HOST.c_str(), INFLUX_DB.c_str());
+    sprintf(url, "%s/write?db=%s", influxHost != NULL ? influxHost : DEFAULT_INFLUX_HOST.c_str(), INFLUX_DB.c_str());
     std::string data = influxData.asLineProtocol(INXFLUX_MEASUREMENTS);
     syslog(LOG_INFO, "Sending data '%s' to %s, user %s", data.c_str(), url, INFLUX_USERNAME);
 
